@@ -1,0 +1,31 @@
+{
+  "name": "api.chattri",
+  "type": "module",
+  "scripts": {
+    "db": "npx prisma dev",
+    "dev": "nodemon --exec tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.5",
+    "@prisma/client": "^6.16.3",
+    "bcryptjs": "^3.0.2",
+    "hono": "^4.9.10",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.1.6",
+    "prisma": "^6.16.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.11.17",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

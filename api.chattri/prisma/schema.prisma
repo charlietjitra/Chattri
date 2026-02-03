@@ -1,0 +1,210 @@
+// Chattri Tutoring Platform - Database Schema
+// 6-digit IDs for all entities for user-friendly URLs
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum MetaType {
+  student
+  tutor
+  admin
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  rejected
+  cancelled
+  completed
+}
+
+enum SessionStatus {
+  scheduled
+  active
+  completed
+  no_show
+}
+
+enum ExperienceLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+// Core Tables
+model User {
+  id           String   @id @db.VarChar(6)
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  metaType     MetaType @map("meta_type")
+  metaId       String   @map("meta_id") @db.VarChar(6)
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  timeZone     String   @map("time_zone")
+  avatarUrl    String?  @map("avatar_url")
+  phone        String?  @map("phone")
+  isVerified   Boolean  @default(false) @map("is_verified")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Student {
+  id                String           @id @db.VarChar(6)
+  bio               String?
+  learningGoals     String?          @map("learning_goals")
+  preferredLanguages Json?           @map("preferred_languages")
+  experienceLevel   ExperienceLevel? @map("experience_level")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  bookings Booking[]
+  reviews  Review[]
+
+  @@map("students")
+}
+
+model Tutor {
+  id                 String   @id @db.VarChar(6)
+  bio                String
+  expertise          Json
+  videoPlatformLink  String   @map("video_platform_link")
+  teachingLanguages  Json     @map("teaching_languages")
+  yearsExperience    Int?     @map("years_experience")
+  education          String?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  timeSlots         TutorTimeSlot[]
+  unavailableDates  TutorUnavailableDate[]
+  bookings          Booking[]
+  reviews           Review[]
+
+  @@map("tutors")
+}
+
+model Admin {
+  id        String   @id @db.VarChar(6)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+// Availability System
+model TutorTimeSlot {
+  id          String   @id @db.VarChar(6)
+  tutorId     String   @map("tutor_id") @db.VarChar(6)
+  hourStart   Int      @map("hour_start") // 0-23
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tutor Tutor @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorId, hourStart])
+  @@map("tutor_time_slots")
+}
+
+model TutorUnavailableDate {
+  id              String   @id @db.VarChar(6)
+  tutorId         String   @map("tutor_id") @db.VarChar(6)
+  unavailableDate DateTime @map("unavailable_date") @db.Date
+  reason          String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tutor Tutor @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorId, unavailableDate])
+  @@map("tutor_unavailable_dates")
+}
+
+// Booking & Sessions
+model Booking {
+  id                 String        @id @db.VarChar(6)
+  studentId          String        @map("student_id") @db.VarChar(6)
+  tutorId            String        @map("tutor_id") @db.VarChar(6)
+  scheduledStartTime DateTime      @map("scheduled_start_time")
+  scheduledEndTime   DateTime      @map("scheduled_end_time")
+  status             BookingStatus @default(pending)
+  cancellationReason String?       @map("cancellation_reason")
+  cancelledBy        String?       @map("cancelled_by") @db.VarChar(6)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  student Student  @relation(fields: [studentId], references: [id])
+  tutor   Tutor    @relation(fields: [tutorId], references: [id])
+  session Session?
+  review  Review?
+
+  @@index([tutorId, scheduledStartTime])
+  @@map("bookings")
+}
+
+model Session {
+  id              String        @id @db.VarChar(6)
+  bookingId       String        @unique @map("booking_id") @db.VarChar(6)
+  actualStartTime DateTime?     @map("actual_start_time")
+  actualEndTime   DateTime?     @map("actual_end_time")
+  status          SessionStatus @default(scheduled)
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  booking  Booking          @relation(fields: [bookingId], references: [id])
+  messages SessionMessage[]
+
+  @@map("sessions")
+}
+
+// Messaging & Reviews
+model SessionMessage {
+  id             String   @id @db.VarChar(6)
+  sessionId      String   @map("session_id") @db.VarChar(6)
+  senderId       String   @map("sender_id") @db.VarChar(6)
+  messageContent String   @map("message_content")
+  sentAt         DateTime @map("sent_at") @default(now())
+  expiresAt      DateTime @map("expires_at")
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, sentAt])
+  @@map("session_messages")
+}
+
+model Review {
+  id         String   @id @db.VarChar(6)
+  tutorId    String   @map("tutor_id") @db.VarChar(6)
+  studentId  String   @map("student_id") @db.VarChar(6)
+  bookingId  String   @unique @map("booking_id") @db.VarChar(6)
+  rating     Int // 1-5 stars
+  reviewText String?  @map("review_text")
+  isPublic   Boolean  @default(true) @map("is_public")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tutor   Tutor   @relation(fields: [tutorId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([tutorId, createdAt])
+  @@map("reviews")
+}
