@@ -191,18 +191,30 @@ sessions.post("/:id/messages", authMiddleware, async (c) => {
       },
     });
 
+    const messageWithSender = {
+      ...message,
+      sender: {
+        id: user.userId,
+        firstName: sender?.firstName,
+        lastName: sender?.lastName,
+        avatarUrl: sender?.avatarUrl,
+      },
+    }
+
+    try {
+      await fetch('http://websocket:8892/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, message: messageWithSender }),
+      })
+    } catch (error) {
+      console.error('Failed to broadcast message:', error)
+    }
+
     return c.json(
       {
         message: "Message sent successfully",
-        data: {
-          ...message,
-          sender: {
-            id: user.userId,
-            firstName: sender?.firstName,
-            lastName: sender?.lastName,
-            avatarUrl: sender?.avatarUrl,
-          },
-        },
+        data: messageWithSender,
       },
       201
     );

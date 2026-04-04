@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { useSessionWebSocket } from '@/lib/websocket'
 import { sessionsApi } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,9 @@ import {
   RefreshCw,
   Play,
   Square,
-  CheckCircle
+  CheckCircle,
+  Wifi,
+  WifiOff
 } from 'lucide-react'
 
 interface SessionAccess {
@@ -36,6 +39,7 @@ interface SessionAccess {
     scheduledEnd: string
     actualStartTime?: string
     actualEndTime?: string
+    studentName?: string
   }
 }
 
@@ -80,9 +84,11 @@ function TutorSessionContent() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // WebSocket
+  const { messages: wsMessage, isConnected, joinSession, leaveSession } = useSessionWebSocket(currentSessionId)
+
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Redirect if not authenticated or wrong role
   useEffect(() => {
@@ -99,21 +105,23 @@ function TutorSessionContent() {
     loadSessionData()
   }, [bookingId, sessionId, user, router])
 
-  // Set up auto-refresh for messages
+  // Join WebSocket session room when session is available
   useEffect(() => {
     if (currentSessionId && sessionAccess?.canMessage) {
-      // Refresh messages every 3 seconds
-      refreshIntervalRef.current = setInterval(() => {
-        loadMessages()
-      }, 3000)
+      joinSession(currentSessionId)
     }
 
     return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current)
-      }
+      leaveSession()
     }
-  }, [currentSessionId, sessionAccess?.canMessage])
+  }, [currentSessionId, sessionAccess?.canMessage, joinSession, leaveSession])
+
+  // Handle incoming WebSocket messages
+  useEffect(() => {
+    if (wsMessage) {
+      setMessages(prev => [...prev, wsMessage])
+    }
+  }, [wsMessage])
 
   const loadSessionData = async () => {
     try {
@@ -297,6 +305,19 @@ function TutorSessionContent() {
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
+        <div className="flex items-center space-x-2">
+          {isConnected ? (
+            <div className="flex items-center text-green-600 text-sm">
+              <Wifi className="w-4 h-4 mr-1" />
+              Connected
+            </div>
+          ) : (
+            <div className="flex items-center text-gray-500 text-sm">
+              <WifiOff className="w-4 h-4 mr-1" />
+              Disconnected
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Error Alert */}

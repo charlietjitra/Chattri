@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { bookingsApi } from '@/lib/api'
@@ -12,14 +12,16 @@ import {
   Calendar, 
   Clock, 
   User, 
-  DollarSign, 
   BookOpen, 
   CheckCircle, 
   XCircle,
   AlertCircle,
   Loader2,
   Settings,
-  Users
+  Users,
+  GraduationCap,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -68,28 +70,13 @@ export default function TutorDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-      return
-    }
-
-    if (user?.role !== 'tutor') {
-      router.push('/student/tutors')
-      return
-    }
-
-    fetchDashboardData()
-  }, [isAuthenticated, user])
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
       const bookingsData = await bookingsApi.getMyBookings()
       setBookings(bookingsData)
       
-      // Calculate stats
       const stats: DashboardStats = {
         totalBookings: bookingsData.length,
         pendingBookings: bookingsData.filter(b => b.status === 'pending').length,
@@ -102,12 +89,26 @@ export default function TutorDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
+    }
+
+    if (user?.role !== 'tutor') {
+      router.push('/student/tutors')
+      return
+    }
+
+    fetchDashboardData()
+  }, [isAuthenticated, user, router, fetchDashboardData])
 
   const handleAcceptBooking = async (bookingId: string) => {
     try {
       await bookingsApi.accept(bookingId)
-      await fetchDashboardData() // Refresh data
+      await fetchDashboardData()
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to accept booking')
     }
@@ -117,27 +118,21 @@ export default function TutorDashboard() {
     const reason = prompt('Please provide a reason for rejection (optional):')
     try {
       await bookingsApi.reject(bookingId, reason || undefined)
-      await fetchDashboardData() // Refresh data
+      await fetchDashboardData()
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to reject booking')
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'cancelled':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      pending: 'bg-[#D4A853]/10 text-[#D4A853] border-[#D4A853]/20',
+      confirmed: 'bg-[#7D9D6A]/10 text-[#7D9D6A] border-[#7D9D6A]/20',
+      rejected: 'bg-red-100 text-red-600 border-red-200',
+      cancelled: 'bg-gray-100 text-gray-600 border-gray-200',
+      completed: 'bg-[#C17F59]/10 text-[#C17F59] border-[#C17F59]/20',
     }
+    return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-600'
   }
 
   const getInitials = (firstName?: string, lastName?: string) => {
@@ -152,7 +147,6 @@ export default function TutorDashboard() {
     }
   }
 
-  // Get upcoming sessions (next 7 days)
   const upcomingSessions = bookings
     .filter(b => b.status === 'confirmed')
     .filter(b => {
@@ -164,45 +158,51 @@ export default function TutorDashboard() {
     .sort((a, b) => new Date(a.scheduledStartTime).getTime() - new Date(b.scheduledStartTime).getTime())
     .slice(0, 5)
 
-  // Get recent pending bookings
-  const pendingBookings = bookings
+  const pendingBookingsList = bookings
     .filter(b => b.status === 'pending')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
 
   if (!isAuthenticated || user?.role !== 'tutor') {
-    return null // Will redirect in useEffect
+    return null
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="min-h-screen relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+        <div className="relative flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-[#7D9D6A]" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-[#7D9D6A]/5 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/3" />
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#C17F59]/5 rounded-full blur-[100px] translate-y-1/3 translate-x-1/3" />
+      
+      <div className="relative container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Welcome back, {user?.firstName}!
-            </h1>
-            <p className="text-gray-600">
-              Manage your tutoring sessions and connect with students
-            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#7D9D6A]/10 rounded-full mb-4">
+              <GraduationCap className="h-4 w-4 text-[#7D9D6A]" />
+              <span className="text-sm font-medium text-[#7D9D6A]">Tutor Dashboard</span>
+            </div>
+            <h1 className="text-4xl font-bold mb-2 text-[#5C5C5C]">Welcome back, {user?.firstName}!</h1>
+            <p className="text-[#5C5C5C]/70">Manage your tutoring sessions and connect with students</p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
+          <div className="flex gap-3">
+            <Button asChild variant="outline" className="border-[#7D9D6A]/20 text-[#7D9D6A] hover:bg-[#7D9D6A]/5">
               <Link href="/tutor/profile">
                 <Settings className="h-4 w-4 mr-2" />
-                Profile Settings
+                Profile
               </Link>
             </Button>
-            <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600">
+            <Button asChild className="bg-[#7D9D6A] hover:bg-[#6D8C5A]">
               <Link href="/tutor/bookings">
                 <Calendar className="h-4 w-4 mr-2" />
                 All Bookings
@@ -213,13 +213,13 @@ export default function TutorDashboard() {
 
         {/* Error State */}
         {error && (
-          <Card className="border-red-200 mb-6">
+          <Card className="mb-6 border-red-200 bg-red-50/80 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
               </div>
-              <Button onClick={fetchDashboardData} variant="outline" className="mt-4">
+              <Button onClick={fetchDashboardData} variant="outline" className="mt-4 border-red-200 text-red-600 hover:bg-red-50">
                 Try Again
               </Button>
             </CardContent>
@@ -227,117 +227,113 @@ export default function TutorDashboard() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-purple-200 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalBookings}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-yellow-200 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pendingBookings}</div>
-              <p className="text-xs text-muted-foreground">Awaiting your response</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmed Sessions</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.confirmedBookings}</div>
-              <p className="text-xs text-muted-foreground">Ready to teach</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.completedSessions}</div>
-              <p className="text-xs text-muted-foreground">Sessions taught</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Total Bookings', value: stats.totalBookings, icon: BookOpen, color: 'terracotta' },
+            { label: 'Pending Requests', value: stats.pendingBookings, icon: Clock, color: 'gold' },
+            { label: 'Confirmed Sessions', value: stats.confirmedBookings, icon: CheckCircle, color: 'sage' },
+            { label: 'Completed', value: stats.completedSessions, icon: TrendingUp, color: 'terracotta' },
+          ].map((stat) => (
+            <Card key={stat.label} className="hover-lift organic-shadow border-0 bg-white/60 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${
+                    stat.color === 'terracotta' ? 'bg-[#C17F59]/10' :
+                    stat.color === 'sage' ? 'bg-[#7D9D6A]/10' :
+                    'bg-[#D4A853]/10'
+                  }`}>
+                    <stat.icon className={`h-6 w-6 ${
+                      stat.color === 'terracotta' ? 'text-[#C17F59]' :
+                      stat.color === 'sage' ? 'text-[#7D9D6A]' :
+                      'text-[#D4A853]'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#5C5C5C]/70">{stat.label}</p>
+                    <p className="text-2xl font-bold text-[#5C5C5C]">{stat.value}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Pending Booking Requests */}
-          <Card className="border-purple-200 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Pending Requests
-              </CardTitle>
-              <CardDescription>
+          <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-[#5C5C5C]">
+                  <div className="p-2 bg-[#D4A853]/10 rounded-lg">
+                    <Clock className="h-5 w-5 text-[#D4A853]" />
+                  </div>
+                  Pending Requests
+                </CardTitle>
+                <Badge className={getStatusBadge('pending')}>
+                  {pendingBookingsList.length} new
+                </Badge>
+              </div>
+              <CardDescription className="text-[#5C5C5C]/70">
                 New booking requests awaiting your response
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {pendingBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No pending requests</p>
-                  <p className="text-sm">Great job staying on top of your bookings!</p>
+              {pendingBookingsList.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-[#7D9D6A]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-[#7D9D6A]/50" />
+                  </div>
+                  <p className="text-[#5C5C5C]/70">No pending requests</p>
+                  <p className="text-sm text-[#5C5C5C]/50">Great job staying on top of your bookings!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pendingBookings.map((booking) => {
+                  {pendingBookingsList.map((booking) => {
                     const { date, time } = formatDateTime(booking.scheduledStartTime)
                     return (
-                      <Card key={booking.id} className="border-yellow-200">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarImage src={booking.student?.user?.avatarUrl || undefined} />
-                                <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white">
-                                  {getInitials(booking.student?.user?.firstName, booking.student?.user?.lastName)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {booking.student?.user?.firstName} {booking.student?.user?.lastName}
-                                </p>
-                                <p className="text-sm text-gray-600">{date} at {time}</p>
-                              </div>
+                      <div
+                        key={booking.id}
+                        className="border border-[#D4A853]/20 rounded-xl p-4 hover:bg-white/80 hover:border-[#D4A853]/40 transition-all duration-300"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-11 w-11 border-2 border-[#D4A853]/20">
+                              <AvatarImage src={booking.student?.user?.avatarUrl || undefined} />
+                              <AvatarFallback className="bg-gradient-to-br from-[#D4A853] to-[#C17F59] text-white">
+                                {getInitials(booking.student?.user?.firstName, booking.student?.user?.lastName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-[#5C5C5C]">
+                                {booking.student?.user?.firstName} {booking.student?.user?.lastName}
+                              </p>
+                              <p className="text-sm text-[#5C5C5C]/70">{date} at {time}</p>
                             </div>
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status}
-                            </Badge>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="bg-gradient-to-r from-green-600 to-emerald-600"
-                              onClick={() => handleAcceptBooking(booking.id)}
-                            >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleRejectBooking(booking.id)}
-                            >
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Reject
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          <Badge className={getStatusBadge(booking.status)}>
+                            {booking.status}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="bg-[#7D9D6A] hover:bg-[#6D8C5A]"
+                            onClick={() => handleAcceptBooking(booking.id)}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Accept
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => handleRejectBooking(booking.id)}
+                          >
+                            <XCircle className="h-3 w-3 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
@@ -346,56 +342,63 @@ export default function TutorDashboard() {
           </Card>
 
           {/* Upcoming Sessions */}
-          <Card className="border-purple-200 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Upcoming Sessions
-              </CardTitle>
-              <CardDescription>
+          <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-[#5C5C5C]">
+                  <div className="p-2 bg-[#7D9D6A]/10 rounded-lg">
+                    <Calendar className="h-5 w-5 text-[#7D9D6A]" />
+                  </div>
+                  Upcoming Sessions
+                </CardTitle>
+              </div>
+              <CardDescription className="text-[#5C5C5C]/70">
                 Your confirmed sessions for the next 7 days
               </CardDescription>
             </CardHeader>
             <CardContent>
               {upcomingSessions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No upcoming sessions</p>
-                  <p className="text-sm">Your schedule is clear for the next week</p>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-[#C17F59]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="h-8 w-8 text-[#C17F59]/50" />
+                  </div>
+                  <p className="text-[#5C5C5C]/70">No upcoming sessions</p>
+                  <p className="text-sm text-[#5C5C5C]/50">Your schedule is clear for the next week</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {upcomingSessions.map((booking) => {
                     const { date, time } = formatDateTime(booking.scheduledStartTime)
                     return (
-                      <Card key={booking.id} className="border-green-200">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarImage src={booking.student?.user?.avatarUrl || undefined} />
-                                <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white">
-                                  {getInitials(booking.student?.user?.firstName, booking.student?.user?.lastName)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {booking.student?.user?.firstName} {booking.student?.user?.lastName}
+                      <div
+                        key={booking.id}
+                        className="border border-[#7D9D6A]/20 rounded-xl p-4 hover:bg-white/80 hover:border-[#7D9D6A]/40 transition-all duration-300"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-11 w-11 border-2 border-[#7D9D6A]/20">
+                              <AvatarImage src={booking.student?.user?.avatarUrl || undefined} />
+                              <AvatarFallback className="bg-gradient-to-br from-[#7D9D6A] to-[#C17F59] text-white">
+                                {getInitials(booking.student?.user?.firstName, booking.student?.user?.lastName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-[#5C5C5C]">
+                                {booking.student?.user?.firstName} {booking.student?.user?.lastName}
+                              </p>
+                              <p className="text-sm text-[#5C5C5C]/70">{date} at {time}</p>
+                              {booking.student?.learningGoals && (
+                                <p className="text-xs text-[#5C5C5C]/50 mt-1 line-clamp-1">
+                                  Goals: {booking.student.learningGoals}
                                 </p>
-                                <p className="text-sm text-gray-600">{date} at {time}</p>
-                                {booking.student?.learningGoals && (
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Goals: {booking.student.learningGoals}
-                                  </p>
-                                )}
-                              </div>
+                              )}
                             </div>
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status}
-                            </Badge>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <Badge className={getStatusBadge(booking.status)}>
+                            {booking.status}
+                          </Badge>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>

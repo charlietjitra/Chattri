@@ -86,10 +86,14 @@ export default function TutorReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+    <div className="min-h-screen relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+      <div className="absolute top-20 right-0 w-96 h-96 bg-[#C17F59]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3" />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-[#7D9D6A]/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3" />
+      
+      <div className="relative container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Button variant="ghost" onClick={() => router.back()} className="text-[#C17F59] hover:bg-[#C17F59]/5">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -97,45 +101,57 @@ export default function TutorReviewsPage() {
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Card className="border-purple-200 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">Reviews</CardTitle>
-                <CardDescription>
-                  {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'} • {averageRating.toFixed(1)} average
-                </CardDescription>
+            <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow">
+              <CardHeader className="bg-gradient-to-br from-[#C17F59]/5 to-[#7D9D6A]/5 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#D4A853]/10 rounded-lg">
+                    <Star className="h-5 w-5 text-[#D4A853]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[#5C5C5C]">Reviews</CardTitle>
+                    <CardDescription className="text-[#5C5C5C]/70">
+                      {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'} • {averageRating.toFixed(1)} average
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center h-48">
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                    <Loader2 className="h-8 w-8 animate-spin text-[#C17F59]" />
                   </div>
                 ) : error ? (
                   <div className="text-red-600">{error}</div>
                 ) : reviews.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No reviews yet</p>
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-[#C17F59]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Star className="h-8 w-8 text-[#C17F59]/50" />
+                    </div>
+                    <p className="text-[#5C5C5C]/70">No reviews yet</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((r) => (
-                      <div key={r.id} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                      <div key={r.id} className="border-b border-[#C17F59]/10 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-start gap-3">
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={r.student.avatarUrl || undefined} />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-200 to-blue-200 text-purple-700">
+                            <AvatarFallback className="bg-gradient-to-br from-[#7D9D6A] to-[#C17F59] text-white">
                               {`${r.student.firstName?.[0] || ''}${r.student.lastName?.[0] || ''}`.toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
 
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-[#5C5C5C]">
                                 {r.student.firstName} {r.student.lastName}
                               </span>
-                              <span className="text-sm text-gray-500">{formatDate(r.createdAt)}</span>
+                              <span className="text-sm text-[#5C5C5C]/50">{formatDate(r.createdAt)}</span>
                             </div>
 
                             <div className="flex gap-1 mb-2">{renderStars(r.rating)}</div>
 
-                            {r.reviewText && <p className="text-gray-700 text-sm">{r.reviewText}</p>}
+                            {r.reviewText && <p className="text-[#5C5C5C]/80 text-sm">{r.reviewText}</p>}
                           </div>
                         </div>
                       </div>
@@ -146,11 +162,11 @@ export default function TutorReviewsPage() {
                 {/* Pagination */}
                 {!isLoading && !error && totalReviews > limit && (
                   <div className="flex items-center justify-between mt-6">
-                    <Button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} variant="outline">
+                    <Button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} variant="outline" className="border-[#C17F59]/20 text-[#C17F59] hover:bg-[#C17F59]/5">
                       Previous
                     </Button>
-                    <div className="text-sm text-gray-600">Page {page}</div>
-                    <Button onClick={() => setPage((p) => p + 1)} disabled={reviews.length < limit} variant="outline">
+                    <div className="text-sm text-[#5C5C5C]/70">Page {page}</div>
+                    <Button onClick={() => setPage((p) => p + 1)} disabled={reviews.length < limit} variant="outline" className="border-[#C17F59]/20 text-[#C17F59] hover:bg-[#C17F59]/5">
                       Next
                     </Button>
                   </div>
@@ -160,23 +176,30 @@ export default function TutorReviewsPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="border-purple-200 shadow-lg sticky top-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Overview</CardTitle>
-                <CardDescription>Summary of your student reviews</CardDescription>
+            <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow sticky top-4">
+              <CardHeader className="bg-gradient-to-br from-[#C17F59]/5 to-[#7D9D6A]/5 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#C17F59]/10 rounded-lg">
+                    <Star className="h-5 w-5 text-[#C17F59]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-[#5C5C5C]">Overview</CardTitle>
+                    <CardDescription className="text-[#5C5C5C]/70">Summary of your student reviews</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-4">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                  <div className="text-4xl font-bold text-gradient-organic mb-2">
                     {averageRating.toFixed(1)}
                   </div>
                   <div className="flex justify-center gap-1 mb-1">{renderStars(Math.round(averageRating))}</div>
-                  <p className="text-sm text-gray-600">Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
+                  <p className="text-sm text-[#5C5C5C]/70">Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
                 </div>
 
                 <div className="mt-4">
                   <Link href="/tutor/dashboard">
-                    <Button variant="outline" className="w-full">Back to Dashboard</Button>
+                    <Button variant="outline" className="w-full border-[#7D9D6A]/20 text-[#7D9D6A] hover:bg-[#7D9D6A]/5">Back to Dashboard</Button>
                   </Link>
                 </div>
               </CardContent>

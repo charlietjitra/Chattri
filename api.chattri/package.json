@@ -4,8 +4,10 @@
   "scripts": {
     "db": "npx prisma dev",
     "dev": "nodemon --exec tsx src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev:ws": "nodemon --exec tsx src/websocket-server.ts",
+    "build": "tsc && tsc src/websocket-server.ts --outDir dist",
+    "start": "node dist/index.js",
+    "start:ws": "node dist/websocket-server.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -18,12 +20,14 @@
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.6",
     "prisma": "^6.16.3",
+    "ws": "^8.18.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.11.17",
+    "@types/ws": "^8.5.10",
     "nodemon": "^3.1.10",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"

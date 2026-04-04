@@ -93,5 +93,4 @@ serve({
   port
 }, (info) => {
   console.log(`Chattri API running on http://localhost:${info.port}`)
-  console.log(`WebSocket server running on ws://localhost:8889/ws`)
 })

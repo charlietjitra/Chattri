@@ -254,9 +254,12 @@ export default function TutorProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+        <div className="relative container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7D9D6A]"></div>
+          </div>
         </div>
       </div>
     );
@@ -265,14 +268,23 @@ export default function TutorProfilePage() {
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-        <p className="text-gray-600">
-          Manage your profile and availability settings
-        </p>
-      </div>
+    <div className="min-h-screen relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+      <div className="absolute top-20 left-0 w-96 h-96 bg-[#7D9D6A]/5 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/3" />
+      <div className="absolute bottom-20 right-0 w-80 h-80 bg-[#C17F59]/5 rounded-full blur-[100px] translate-y-1/3 translate-x-1/3" />
+      
+      <div className="relative container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#7D9D6A]/10 rounded-full mb-4">
+            <User className="h-4 w-4 text-[#7D9D6A]" />
+            <span className="text-sm font-medium text-[#7D9D6A]">Tutor Profile</span>
+          </div>
+          <h1 className="text-4xl font-bold mb-2 text-[#5C5C5C]">My Profile</h1>
+          <p className="text-[#5C5C5C]/70">
+            Manage your profile and availability settings
+          </p>
+        </div>
 
       {/* Success Alert */}
       {success && (
@@ -577,8 +589,8 @@ export default function TutorProfilePage() {
                     onClick={() => handleHourToggle(hour)}
                     className={`p-2 rounded-lg font-medium text-sm transition ${
                       availableHours.includes(hour)
-                        ? "bg-purple-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-[#7D9D6A] text-white"
+                : "bg-[#7D9D6A]/10 text-[#7D9D6A] hover:bg-[#7D9D6A]/20"
                     }`}
                   >
                     {hour.toString().padStart(2, "0")}:00
@@ -602,7 +614,7 @@ export default function TutorProfilePage() {
               <Button
                 onClick={handleSaveAvailability}
                 disabled={isSaving}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-[#7D9D6A] hover:bg-[#6D8C5A]"
               >
                 {isSaving ? "Saving..." : "Save Availability"}
               </Button>

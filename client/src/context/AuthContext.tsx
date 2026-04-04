@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { authApi, usersApi } from '@/lib/api'
 import { setAuthToken, removeAuthToken, getAuthToken } from '@/lib/api-client'
 import type { LoginRequest, RegisterRequest, Role, AuthResponse } from '@/types'
+import { WebSocketProvider } from '@/lib/websocket'
 
 interface AuthContextType {
   user: any | null
@@ -155,7 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser,
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <WebSocketProvider>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </WebSocketProvider>
+  )
 }
 
 export function useAuth() {

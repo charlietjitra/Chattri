@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Star, ArrowLeft, Calendar, Globe, GraduationCap, Briefcase, Video, Loader2 } from 'lucide-react'
+import { Star, ArrowLeft, Calendar, Globe, GraduationCap, Briefcase, Video, Loader2, User, MessageSquare } from 'lucide-react'
 import type { Tutor } from '@/types'
 
 interface TutorWithUser extends Tutor {
@@ -60,12 +60,8 @@ export default function TutorDetailPage() {
     try {
       setIsLoading(true)
       setError(null)
-
-      // Fetch tutor profile
       const tutorData = await tutorsApi.getById(tutorId)
       setTutor(tutorData)
-
-      // Fetch reviews
       const reviewsData = await reviewsApi.getTutorReviews(tutorId, 1, 10)
       setReviews(reviewsData.reviews as any[])
       setAverageRating(reviewsData.averageRating)
@@ -83,22 +79,7 @@ export default function TutorDetailPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-        }`}
-      />
-    ))
+    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 
   const handleBookSession = () => {
@@ -106,46 +87,48 @@ export default function TutorDetailPage() {
       router.push('/login')
       return
     }
-
     if (user?.role !== 'student') {
       alert('Only students can book sessions')
       return
     }
-
-    // Navigate to booking page (we'll create this next)
     router.push(`/student/tutors/${tutorId}/book`)
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="min-h-screen relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+        <div className="relative flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-[#C17F59]" />
+        </div>
       </div>
     )
   }
 
   if (error || !tutor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Tutor not found'}</p>
-          <Button asChild variant="outline">
-            <Link href="/student/tutors">Back to Tutors</Link>
-          </Button>
+      <div className="min-h-screen relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+        <div className="relative flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error || 'Tutor not found'}</p>
+            <Button asChild variant="outline" className="border-[#C17F59]/20 text-[#C17F59]">
+              <Link href="/student/tutors">Back to Tutors</Link>
+            </Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => router.back()}
-        >
+    <div className="min-h-screen relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+      <div className="absolute top-20 right-0 w-96 h-96 bg-[#C17F59]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3" />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-[#7D9D6A]/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3" />
+      
+      <div className="relative container mx-auto px-4 py-8">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-6 text-[#C17F59] hover:bg-[#C17F59]/5">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
@@ -153,35 +136,34 @@ export default function TutorDetailPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Tutor Profile */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Profile Header Card */}
-            <Card className="border-purple-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-br from-purple-50 to-blue-50">
+            <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow overflow-hidden">
+              <CardHeader className="bg-gradient-to-br from-[#C17F59]/5 to-[#7D9D6A]/5 pb-6">
                 <div className="flex flex-col md:flex-row gap-6">
                   <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
                     <AvatarImage src={tutor.user?.avatarUrl || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white text-3xl">
+                    <AvatarFallback className="bg-gradient-to-br from-[#C17F59] to-[#7D9D6A] text-white text-3xl">
                       {getInitials(tutor.user?.firstName, tutor.user?.lastName)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1">
-                    <CardTitle className="text-3xl mb-2">
+                    <CardTitle className="text-3xl mb-3 text-[#5C5C5C]">
                       {tutor.user?.firstName} {tutor.user?.lastName}
                     </CardTitle>
 
-                    {/* Rating */}
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex gap-1">
-                        {renderStars(Math.round(averageRating))}
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star key={i} className={`h-5 w-5 ${i < Math.round(averageRating) ? 'fill-[#D4A853] text-[#D4A853]' : 'text-gray-300'}`} />
+                        ))}
                       </div>
-                      <span className="font-semibold text-lg">{averageRating.toFixed(1)}</span>
-                      <span className="text-gray-600">
+                      <span className="font-semibold text-lg text-[#5C5C5C]">{averageRating.toFixed(1)}</span>
+                      <span className="text-[#5C5C5C]/70">
                         ({totalReviews} {totalReviews === 1 ? 'review' : 'reviews'})
                       </span>
                     </div>
 
-                    {/* Quick Info */}
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="flex flex-wrap gap-4 text-sm text-[#5C5C5C]/70">
                       {tutor.yearsExperience && (
                         <div className="flex items-center gap-1">
                           <Briefcase className="h-4 w-4" />
@@ -200,69 +182,53 @@ export default function TutorDetailPage() {
               </CardHeader>
 
               <CardContent className="pt-6">
-                <p className="text-gray-700 leading-relaxed mb-6">{tutor.bio}</p>
+                <p className="text-[#5C5C5C]/80 leading-relaxed mb-6">{tutor.bio}</p>
 
-                {/* Expertise */}
                 {tutor.expertise && tutor.expertise.length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4" />
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold text-[#5C5C5C] mb-2 flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 text-[#C17F59]" />
                       Expertise
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {tutor.expertise.map((exp, idx) => (
-                        <Badge
-                          key={idx}
-                          className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200"
-                        >
-                          {exp}
-                        </Badge>
+                      {tutor.expertise.map((exp) => (
+                        <Badge key={exp} className="bg-[#C17F59]/10 text-[#C17F59] border-0">{exp}</Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Languages */}
                 {tutor.teachingLanguages && tutor.teachingLanguages.length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold text-[#5C5C5C] mb-2 flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-[#7D9D6A]" />
                       Teaching Languages
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {tutor.teachingLanguages.map((lang, idx) => (
-                        <Badge key={idx} variant="outline">
-                          {lang}
-                        </Badge>
+                      {tutor.teachingLanguages.map((lang) => (
+                        <Badge key={lang} variant="outline" className="border-[#7D9D6A]/20 text-[#7D9D6A]">{lang}</Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Education */}
                 {tutor.education && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4" />
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold text-[#5C5C5C] mb-2 flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 text-[#D4A853]" />
                       Education
                     </h3>
-                    <p className="text-gray-700">{tutor.education}</p>
+                    <p className="text-[#5C5C5C]/80">{tutor.education}</p>
                   </div>
                 )}
 
-                {/* Video Platform */}
                 {tutor.videoPlatformLink && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Video className="h-4 w-4" />
+                    <h3 className="text-sm font-semibold text-[#5C5C5C] mb-2 flex items-center gap-2">
+                      <Video className="h-4 w-4 text-[#C17F59]" />
                       Video Platform
                     </h3>
-                    <a
-                      href={tutor.videoPlatformLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 hover:text-purple-700 underline"
-                    >
+                    <a href={tutor.videoPlatformLink} target="_blank" rel="noopener noreferrer" className="text-[#C17F59] hover:underline">
                       {tutor.videoPlatformLink}
                     </a>
                   </div>
@@ -271,47 +237,56 @@ export default function TutorDetailPage() {
             </Card>
 
             {/* Reviews Section */}
-            <Card className="border-purple-200 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                  Student Reviews
-                </CardTitle>
-                <CardDescription>
-                  {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'} from students
-                </CardDescription>
+            <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#D4A853]/10 rounded-lg">
+                    <Star className="h-5 w-5 text-[#D4A853]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[#5C5C5C]">Student Reviews</CardTitle>
+                    <CardDescription className="text-[#5C5C5C]/70">
+                      {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'} from students
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {reviews.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No reviews yet</p>
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-[#C17F59]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="h-8 w-8 text-[#C17F59]/50" />
+                    </div>
+                    <p className="text-[#5C5C5C]/70">No reviews yet</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                      <div key={review.id} className="border-b border-[#C17F59]/10 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-start gap-3">
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={review.student.avatarUrl || undefined} />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-200 to-blue-200 text-purple-700">
+                            <AvatarFallback className="bg-gradient-to-br from-[#7D9D6A] to-[#C17F59] text-white">
                               {getInitials(review.student.firstName, review.student.lastName)}
                             </AvatarFallback>
                           </Avatar>
 
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-[#5C5C5C]">
                                 {review.student.firstName} {review.student.lastName}
                               </span>
-                              <span className="text-sm text-gray-500">
-                                {formatDate(review.createdAt)}
-                              </span>
+                              <span className="text-sm text-[#5C5C5C]/50">{formatDate(review.createdAt)}</span>
                             </div>
 
                             <div className="flex gap-1 mb-2">
-                              {renderStars(review.rating)}
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-[#D4A853] text-[#D4A853]' : 'text-gray-300'}`} />
+                              ))}
                             </div>
 
                             {review.reviewText && (
-                              <p className="text-gray-700 text-sm">{review.reviewText}</p>
+                              <p className="text-[#5C5C5C]/80 text-sm">{review.reviewText}</p>
                             )}
                           </div>
                         </div>
@@ -325,42 +300,35 @@ export default function TutorDetailPage() {
 
           {/* Right Column - Booking Card */}
           <div className="lg:col-span-1">
-            <Card className="border-purple-200 shadow-lg sticky top-4">
-              <CardHeader className="bg-gradient-to-br from-purple-50 to-blue-50">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Book a Session
-                </CardTitle>
+            <Card className="border-0 bg-white/60 backdrop-blur-sm organic-shadow sticky top-4">
+              <CardHeader className="bg-gradient-to-br from-[#C17F59]/5 to-[#7D9D6A]/5 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#C17F59]/10 rounded-lg">
+                    <Calendar className="h-5 w-5 text-[#C17F59]" />
+                  </div>
+                  <CardTitle className="text-[#5C5C5C]">Book a Session</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="mb-6">
-                  <div className="text-center mb-4">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                      {averageRating.toFixed(1)}
-                    </div>
-                    <div className="flex justify-center gap-1 mb-1">
-                      {renderStars(Math.round(averageRating))}
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
-                    </p>
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold text-gradient-organic mb-2">{averageRating.toFixed(1)}</div>
+                  <div className="flex justify-center gap-1 mb-2">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star key={i} className={`h-4 w-4 ${i < Math.round(averageRating) ? 'fill-[#D4A853] text-[#D4A853]' : 'text-gray-300'}`} />
+                    ))}
                   </div>
+                  <p className="text-sm text-[#5C5C5C]/70">Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
                 </div>
 
-                <Button
-                  onClick={handleBookSession}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg py-6"
-                >
+                <Button onClick={handleBookSession} className="w-full bg-[#C17F59] hover:bg-[#B3714F] text-lg py-6 rounded-xl hover-lift">
                   Book a Session
                 </Button>
 
                 {!isAuthenticated && (
-                  <p className="text-sm text-gray-600 text-center mt-3">
+                  <p className="text-sm text-[#5C5C5C]/70 text-center mt-3">
                     Please{' '}
-                    <Link href="/login" className="text-purple-600 hover:text-purple-700 font-medium">
-                      sign in
-                    </Link>{' '}
-                    to book a session
+                    <Link href="/login" className="text-[#C17F59] hover:text-[#B3714F] font-medium">sign in</Link>
+                    {' '}to book
                   </p>
                 )}
               </CardContent>

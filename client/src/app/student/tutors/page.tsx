@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Search, Star, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Search, Star, ChevronLeft, ChevronRight, Loader2, GraduationCap, Users } from 'lucide-react'
 import type { Tutor } from '@/types'
 
 interface TutorWithUser extends Tutor {
@@ -34,23 +34,19 @@ export default function TutorsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalTutors, setTotalTutors] = useState(0)
 
-  // Extract unique languages and expertise from all tutors
   const [allLanguages, setAllLanguages] = useState<string[]>([])
   const [allExpertise, setAllExpertise] = useState<string[]>([])
 
-  // Fetch all options on mount
   useEffect(() => {
     fetchAllOptions()
   }, [])
 
-  // Fetch tutors when filters change
   useEffect(() => {
     fetchTutors()
   }, [currentPage, selectedLanguage, selectedExpertise])
 
   const fetchAllOptions = async () => {
     try {
-      // Fetch all tutors without filters to get all available options (max 50 per backend limit)
       const response = await tutorsApi.list({ page: 1, limit: 50 })
       
       const languages = new Set<string>()
@@ -141,35 +137,41 @@ export default function TutorsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F1] via-[#FDFCFA] to-[#F5F0E8]" />
+      <div className="absolute top-20 right-0 w-96 h-96 bg-[#C17F59]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3" />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-[#7D9D6A]/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3" />
+      
+      <div className="relative container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Find Your Perfect Tutor
-          </h1>
-          <p className="text-gray-600">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C17F59]/10 rounded-full mb-4">
+            <GraduationCap className="h-4 w-4 text-[#C17F59]" />
+            <span className="text-sm font-medium text-[#C17F59]">Find Your Tutor</span>
+          </div>
+          <h1 className="text-4xl font-bold mb-2 text-[#5C5C5C]">Find Your Perfect Tutor</h1>
+          <p className="text-[#5C5C5C]/70">
             Browse {totalTutors} expert tutors ready to help you achieve your learning goals
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5C5C5C]/50" />
               <Input
                 type="text"
                 placeholder="Search by name, expertise, or subject..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-10"
+                className="pl-11 border-[#C17F59]/20 focus:border-[#C17F59] focus:ring-[#C17F59]/20 bg-white/80"
               />
             </div>
             <Button 
               onClick={handleSearch}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-[#C17F59] hover:bg-[#B3714F] px-6"
             >
               Search
             </Button>
@@ -177,17 +179,17 @@ export default function TutorsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2 items-center mb-3">
-            <span className="text-sm font-medium text-gray-700">Languages:</span>
+        <div className="mb-6 space-y-3">
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm font-medium text-[#5C5C5C]">Languages:</span>
             {allLanguages.map(lang => (
               <Badge
                 key={lang}
                 variant={selectedLanguage === lang ? "default" : "outline"}
-                className={`cursor-pointer transition-colors ${
+                className={`cursor-pointer transition-all duration-200 ${
                   selectedLanguage === lang 
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' 
-                    : 'hover:bg-purple-50'
+                    ? 'bg-[#C17F59] hover:bg-[#B3714F] text-white' 
+                    : 'border-[#C17F59]/20 text-[#5C5C5C] hover:bg-[#C17F59]/5 hover:border-[#C17F59]/40'
                 }`}
                 onClick={() => handleFilterChange('language', lang)}
               >
@@ -196,16 +198,16 @@ export default function TutorsPage() {
             ))}
           </div>
           
-          <div className="flex flex-wrap gap-2 items-center mb-3">
-            <span className="text-sm font-medium text-gray-700">Expertise:</span>
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm font-medium text-[#5C5C5C]">Expertise:</span>
             {allExpertise.map(exp => (
               <Badge
                 key={exp}
                 variant={selectedExpertise === exp ? "default" : "outline"}
-                className={`cursor-pointer transition-colors ${
+                className={`cursor-pointer transition-all duration-200 ${
                   selectedExpertise === exp 
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' 
-                    : 'hover:bg-blue-50'
+                    ? 'bg-[#7D9D6A] hover:bg-[#6D8C5A] text-white' 
+                    : 'border-[#7D9D6A]/20 text-[#5C5C5C] hover:bg-[#7D9D6A]/5 hover:border-[#7D9D6A]/40'
                 }`}
                 onClick={() => handleFilterChange('expertise', exp)}
               >
@@ -219,7 +221,7 @@ export default function TutorsPage() {
               variant="ghost" 
               size="sm"
               onClick={clearFilters}
-              className="text-purple-600 hover:text-purple-700"
+              className="text-[#C17F59] hover:text-[#B3714F] hover:bg-[#C17F59]/5"
             >
               Clear all filters
             </Button>
@@ -229,15 +231,18 @@ export default function TutorsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#C17F59]" />
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <div className="text-center py-20">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-red-500" />
+            </div>
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchTutors}>Try Again</Button>
+            <Button onClick={fetchTutors} className="bg-[#C17F59] hover:bg-[#B3714F]">Try Again</Button>
           </div>
         )}
 
@@ -246,33 +251,36 @@ export default function TutorsPage() {
           <>
             {filteredTutors.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-600 mb-4">No tutors found matching your criteria.</p>
-                <Button onClick={clearFilters} variant="outline">Clear Filters</Button>
+                <div className="w-16 h-16 bg-[#C17F59]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-[#C17F59]/50" />
+                </div>
+                <p className="text-[#5C5C5C]/70 mb-4">No tutors found matching your criteria.</p>
+                <Button onClick={clearFilters} variant="outline" className="border-[#C17F59]/20 text-[#C17F59]">Clear Filters</Button>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {filteredTutors.map((tutor) => (
                   <Card 
                     key={tutor.id} 
-                    className="hover:shadow-xl transition-shadow border-purple-100 overflow-hidden"
+                    className="hover-lift organic-shadow border-0 bg-white/60 backdrop-blur-sm overflow-hidden group"
                   >
-                    <CardHeader className="bg-gradient-to-br from-purple-50 to-blue-50 pb-4">
+                    <CardHeader className="bg-gradient-to-br from-[#C17F59]/5 to-[#7D9D6A]/5 pb-4">
                       <div className="flex items-start gap-4">
-                        <Avatar className="h-16 w-16 border-2 border-white shadow-md">
+                        <Avatar className="h-16 w-16 border-2 border-white shadow-md group-hover:scale-105 transition-transform duration-300">
                           <AvatarImage src={tutor.user?.avatarUrl || undefined} />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white text-lg">
+                          <AvatarFallback className="bg-gradient-to-br from-[#C17F59] to-[#7D9D6A] text-white text-lg">
                             {getInitials(tutor.user?.firstName, tutor.user?.lastName)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <CardTitle className="text-xl mb-1">
+                          <CardTitle className="text-xl mb-1 text-[#5C5C5C]">
                             {tutor.user?.firstName} {tutor.user?.lastName}
                           </CardTitle>
                           {tutor.averageRating !== undefined && (
                             <div className="flex items-center gap-1 text-sm">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="font-semibold">{tutor.averageRating.toFixed(1)}</span>
-                              <span className="text-gray-500">
+                              <Star className="h-4 w-4 fill-[#D4A853] text-[#D4A853]" />
+                              <span className="font-semibold text-[#5C5C5C]">{tutor.averageRating.toFixed(1)}</span>
+                              <span className="text-[#5C5C5C]/50">
                                 ({tutor.totalReviews} {tutor.totalReviews === 1 ? 'review' : 'reviews'})
                               </span>
                             </div>
@@ -282,22 +290,21 @@ export default function TutorsPage() {
                     </CardHeader>
 
                     <CardContent className="pt-4">
-                      <CardDescription className="mb-4 line-clamp-3 text-sm">
+                      <CardDescription className="mb-4 line-clamp-3 text-sm text-[#5C5C5C]/70">
                         {tutor.bio}
                       </CardDescription>
 
-                      {/* Expertise */}
                       {tutor.expertise && tutor.expertise.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs font-medium text-gray-700 mb-1">Expertise:</p>
+                          <p className="text-xs font-medium text-[#5C5C5C]/70 mb-1">Expertise:</p>
                           <div className="flex flex-wrap gap-1">
-                            {tutor.expertise.slice(0, 3).map((exp, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-xs">
+                            {tutor.expertise.slice(0, 3).map((exp) => (
+                              <Badge key={exp} className="text-xs bg-[#C17F59]/10 text-[#C17F59] border-0">
                                 {exp}
                               </Badge>
                             ))}
                             {tutor.expertise.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge className="text-xs bg-[#5C5C5C]/10 text-[#5C5C5C]/70 border-0">
                                 +{tutor.expertise.length - 3} more
                               </Badge>
                             )}
@@ -305,13 +312,12 @@ export default function TutorsPage() {
                         </div>
                       )}
 
-                      {/* Languages */}
                       {tutor.teachingLanguages && tutor.teachingLanguages.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs font-medium text-gray-700 mb-1">Languages:</p>
+                          <p className="text-xs font-medium text-[#5C5C5C]/70 mb-1">Languages:</p>
                           <div className="flex flex-wrap gap-1">
-                            {tutor.teachingLanguages.map((lang, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
+                            {tutor.teachingLanguages.map((lang) => (
+                              <Badge key={lang} variant="outline" className="text-xs border-[#7D9D6A]/20 text-[#7D9D6A]">
                                 {lang}
                               </Badge>
                             ))}
@@ -319,9 +325,8 @@ export default function TutorsPage() {
                         </div>
                       )}
 
-                      {/* Experience */}
                       {tutor.yearsExperience && (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-[#5C5C5C]/50">
                           {tutor.yearsExperience} {tutor.yearsExperience === 1 ? 'year' : 'years'} of experience
                         </p>
                       )}
@@ -330,7 +335,7 @@ export default function TutorsPage() {
                     <CardFooter>
                       <Button 
                         asChild 
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        className="w-full bg-[#C17F59] hover:bg-[#B3714F] hover-lift"
                       >
                         <Link href={`/student/tutors/${tutor.id}`}>
                           View Profile
@@ -350,6 +355,7 @@ export default function TutorsPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
+                  className="border-[#C17F59]/20 text-[#C17F59] hover:bg-[#C17F59]/5"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
@@ -374,7 +380,7 @@ export default function TutorsPage() {
                         variant={currentPage === pageNum ? "default" : "outline"}
                         size="sm"
                         onClick={() => setCurrentPage(pageNum)}
-                        className={currentPage === pageNum ? 'bg-gradient-to-r from-purple-600 to-blue-600' : ''}
+                        className={currentPage === pageNum ? 'bg-[#C17F59] hover:bg-[#B3714F]' : 'border-[#C17F59]/20 text-[#C17F59]'}
                       >
                         {pageNum}
                       </Button>
@@ -387,6 +393,7 @@ export default function TutorsPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
+                  className="border-[#C17F59]/20 text-[#C17F59] hover:bg-[#C17F59]/5"
                 >
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />

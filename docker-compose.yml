@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chattri
+      POSTGRES_PASSWORD: chattri
+      POSTGRES_DB: chattri
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chattri -d chattri"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-1:
+    build:
+      context: ./api.chattri
+      dockerfile: Dockerfile
+    ports:
+      - "8889:8888"
+    environment:
+      - PORT=8888
+      - DATABASE_URL=postgresql://chattri:chattri@postgres:5432/chattri
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - NODE_ENV=development
+      - ALLOWED_ORIGINS=http://localhost:8888
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    command: sh -c "npx prisma db push && npm run dev"
+
+  api-2:
+    build:
+      context: ./api.chattri
+      dockerfile: Dockerfile
+    ports:
+      - "8890:8888"
+    environment:
+      - PORT=8888
+      - DATABASE_URL=postgresql://chattri:chattri@postgres:5432/chattri
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - NODE_ENV=development
+      - ALLOWED_ORIGINS=http://localhost:8888
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    command: sh -c "npx prisma db push && npm run dev"
+
+  websocket:
+    build:
+      context: ./api.chattri
+      dockerfile: Dockerfile
+    ports:
+      - "8891:8891"
+    environment:
+      - PORT=8891
+      - BROADCAST_PORT=8892
+      - DATABASE_URL=postgresql://chattri:chattri@postgres:5432/chattri
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    command: sh -c "npx prisma generate && npx tsx src/websocket-server.ts"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api-1
+      - api-2
+      - websocket
+
+volumes:
+  postgres_data:

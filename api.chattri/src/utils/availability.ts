@@ -4,8 +4,10 @@ import { generateId } from "./id-generator.js";
 /**
  * Create 24 time slots (00:00-23:00) for a new tutor
  * All slots are initially set to unavailable (false)
+ * @param tutorId - The tutor's ID
+ * @param availableHours - Optional array of hours (0-23) that the tutor is available
  */
-export async function createTutorTimeSlots(tutorId: string): Promise<void> {
+export async function createTutorTimeSlots(tutorId: string, availableHours?: number[]): Promise<void> {
   const timeSlots = [];
 
   // Generate 24 hour slots (0-23)
@@ -14,7 +16,7 @@ export async function createTutorTimeSlots(tutorId: string): Promise<void> {
       id: generateId(),
       tutorId,
       hourStart: hour,
-      isAvailable: false, // Initially all slots are unavailable
+      isAvailable: availableHours ? availableHours.includes(hour) : false,
     });
   }
 
